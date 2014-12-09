@@ -35,7 +35,7 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-uint256 hashGenesisBlock("0x09b3645db74ada462eb746dd464276a9a6eb75326b55ad1c0f2da4b9be672261");
+uint256 hashGenesisBlock("0xf052dd8336db7f191adb89dd6de34fcb4a23dcfbe9baafc7ad16a30f7b3242da");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // HTCoin: starting difficulty is 1 / 2^12
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -1087,16 +1087,17 @@ uint256 static GetOrphanRoot(const CBlockHeader* pblock)
 
 int64 static GetBlockValue(int nHeight, int64 nFees)
 {
-    int64 nSubsidy = 8 * COIN;
+    int64 nSubsidy = 5 * COIN;
 
-    // Subsidy is cut in half every 1.1M blocks, which will occur approximately every 2 years
-    nSubsidy >>= (nHeight / 1100000); // HTCoin: 1.1M blocks in ~2 years
+    // No block reward after 4M blocks (~2 years)
+    if(nHeight > 4000000)
+        nSubsidy = 0;
 
     return nSubsidy + nFees;
 }
 
-static const int64 nTargetTimespan = 24 * 60 * 60; // HTCoin: 1 hour
-static const int64 nTargetSpacing = 60; // HTCoin: 1 minutes
+static const int64 nTargetTimespan = 60 * 60; // HTCoin: 1 hour
+static const int64 nTargetSpacing = 15; // HTCoin: 15 seconds
 static const int64 nInterval = nTargetTimespan / nTargetSpacing;
 
 //
@@ -2772,33 +2773,33 @@ bool InitBlockIndex() {
     // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)
     if (!fReindex) {
         // Genesis Block:
-        // CBlock(hash=12a765e31ffd4059bada, PoW=0000050c34a64b415b6b, ver=1, hashPrevBlock=00000000000000000000, hashMerkleRoot=97ddfbbae6, nTime=1317972665, nBits=1e0ffff0, nNonce=2084524493, vtx=1)
-        //   CTransaction(hash=97ddfbbae6, ver=1, vin.size=1, vout.size=1, nLockTime=0)
-        //     CTxIn(COutPoint(0000000000, -1), coinbase 04ffff001d0104404e592054696d65732030352f4f63742f32303131205374657665204a6f62732c204170706c65e280997320566973696f6e6172792c2044696573206174203536)
-        //     CTxOut(nValue=50.00000000, scriptPubKey=040184710fa689ad5023690c80f3a4)
-        //   vMerkleTree: 97ddfbbae6
+        // CBlock(hash=f052dd8336db7f191adb89dd6de34fcb4a23dcfbe9baafc7ad16a30f7b3242da, input=0100000000000000000000000000000000000000000000000000000000000000000000000530221227e9591b85babcadc469bce6f540719ba1bc04ab704cc0d5cc02d0619c168754f0ff0f1eefc91000, PoW=00000f323a0f58cbecdbf84cbd97b0851d2b8b3cad58e5bd95678858a1ea4a59, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000, hashMerkleRoot=61d002ccd5c04c70ab04bca19b7140f5e6bc69c4adbcba851b59e92712223005, nTime=1418139292, nBits=1e0ffff0, nNonce=1100271, vtx=1)
+        //   CTransaction(hash=61d002ccd5c04c70ab04bca19b7140f5e6bc69c4adbcba851b59e92712223005, ver=1, vin.size=1, vout.size=1, nLockTime=0)
+        //     CTxIn(COutPoint(0000000000000000000000000000000000000000000000000000000000000000, 4294967295), coinbase 04ffff001d01043b41442e6e6c2030392f4465632f32303134205772616b7374756b6b656e204d483137206b6f6d656e2061616e20696e2047696c7a652d52696a656e)
+        //     CTxOut(nValue=5.00000000, scriptPubKey=0 OP_CHECKSIG)
+        //   vMerkleTree: 61d002ccd5c04c70ab04bca19b7140f5e6bc69c4adbcba851b59e92712223005
 
         // Genesis block
-        const char* pszTimestamp = "NY Times 29/Nov/2014 Egyptian Judges Drop All Charges Against Mubarak";
+        const char* pszTimestamp = "AD.nl 09/Dec/2014 Wrakstukken MH17 komen aan in Gilze-Rijen";
         CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-        txNew.vout[0].nValue = 8 * COIN;
-        txNew.vout[0].scriptPubKey = CScript() << ParseHex("040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9") << OP_CHECKSIG;
+        txNew.vout[0].nValue = 5 * COIN;
+        txNew.vout[0].scriptPubKey = CScript() << 0x0 << OP_CHECKSIG;
         CBlock block;
         block.vtx.push_back(txNew);
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1417368053;
+        block.nTime    = 1418139292;
         block.nBits    = 0x1e0ffff0;
-        block.nNonce   = 537636;
+        block.nNonce   = 1100271;
 
         if (fTestNet)
         {
-            block.nTime    = 1317798646;
-            block.nNonce   = 385270584;
+            block.nTime    = 1418139292;
+            block.nNonce   = 0;
         }
 
         //// debug print
@@ -2806,7 +2807,7 @@ bool InitBlockIndex() {
         printf("%s\n", hash.ToString().c_str());
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
-        assert(block.hashMerkleRoot == uint256("0x8b3eb9136a53d4c410c6e48eb54be4b8aeb8d2cab53a8dc1be478e04d43a97e4"));
+        assert(block.hashMerkleRoot == uint256("0x61d002ccd5c04c70ab04bca19b7140f5e6bc69c4adbcba851b59e92712223005"));
         block.print();
         assert(hash == hashGenesisBlock);
 
