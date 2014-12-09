@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = htcoin-qt
 macx:TARGET = "HTCoin-Qt"
-VERSION = 0.8.7.4
+VERSION = 0.2.0.0
 INCLUDEPATH += src src/json src/qt
 QT += core gui network
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
